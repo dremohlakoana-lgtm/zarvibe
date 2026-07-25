@@ -1,0 +1,4 @@
+backend/mznsocial.db
+__pycache__/
+*.pyc
+*.log
