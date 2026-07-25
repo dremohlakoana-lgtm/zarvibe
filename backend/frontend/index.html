@@ -537,11 +537,19 @@ function switchTab(t){
 
 async function doLogin(){
   const msg=document.getElementById("l-msg");
+  const btn=document.querySelector('#login-form .btn-primary');
+  btn.textContent='Signing in...';
+  btn.disabled=true;
   try{
     const d=await api("/api/auth/login","POST",{email:document.getElementById("l-email").value,password:document.getElementById("l-pass").value});
+    if(!d.token){throw new Error('No token received');}
     TOKEN=d.token; localStorage.setItem("zv_token",TOKEN);
+    msg.innerHTML='<div class="suc">✅ Logged in! Loading...</div>';
     await boot();
-  }catch(e){msg.innerHTML=`<div class="err">❌ ${e.message}</div>`;}
+  }catch(e){
+    msg.innerHTML=`<div class="err">❌ ${e.message}</div>`;
+    btn.textContent='Sign In'; btn.disabled=false;
+  }
 }
 
 async function doRegister(){
@@ -569,14 +577,20 @@ function doLogout(){
 async function boot(){
   try{
     ME=await api("/api/user/me");
+    if(!ME||!ME.id){throw new Error('Could not load profile');}
     document.getElementById("auth").style.display="none";
     document.getElementById("app").style.display="block";
-    document.getElementById("comp-av").textContent=ME.display_name[0].toUpperCase();
-    document.getElementById("prof-av").textContent=ME.display_name[0].toUpperCase();
+    const initial=(ME.display_name||'Z')[0].toUpperCase();
+    document.getElementById("comp-av").textContent=initial;
+    document.getElementById("prof-av").textContent=initial;
     updateTicker();
     go("home");
     loadFeed();
-  }catch(e){doLogout();}
+  }catch(e){
+    console.error('Boot failed:',e);
+    TOKEN=''; localStorage.removeItem('zv_token');
+    document.getElementById('l-msg').innerHTML=`<div class="err">❌ Session error. Please try again.</div>`;
+  }
 }
 
 function updateTicker(){
