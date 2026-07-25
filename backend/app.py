@@ -318,7 +318,7 @@ def me():
     if not user:
         return jsonify(error="User not found"), 404
     user.pop("password_hash", None)
-    return jsonify(user=user)
+    return jsonify(user)
 
 
 @app.route("/api/user/<username>", methods=["GET"])
